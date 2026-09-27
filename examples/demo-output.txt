@@ -1,0 +1,24 @@
+zrich  expressive terminal output, written in Zig
+
+╭ Small API. Rich output. ─────────────────────────────────╮
+│ Styles, nested markup, wrapping tables, panels, and prog │
+│ ress.                                                    │
+│ Explicit allocators. Any writer. Zero runtime dependenci │
+│ es.                                                      │
+╰──────────────────────────────────────────────────────────╯
+
+Nested styles: ready to ship in green  [literal brackets]
+Truecolor  256 colors   backgrounds 
+
+╭────────────┬──────────┬───────────────────────────────╮
+│ Component  │ Status   │ Details                       │
+├────────────┼──────────┼───────────────────────────────┤
+│ Styles     │ ready    │ ANSI, RGB, 256 colors         │
+│ Tables     │ ready    │ Automatic column widths       │
+│            │          │ Multiline cells and alignment │
+│ Unicode    │ 基础     │ CJK and combining: café       │
+│ Allocation │ explicit │ Only table layout allocates   │
+╰────────────┴──────────┴───────────────────────────────╯
+
+Building [━━━━━━━━━━━━━━━━────────]  70%
+Tests [━━━━━━━━━━━━━━━━━━━━━━━━] 100%
