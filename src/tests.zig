@@ -95,6 +95,90 @@ test "invalid table shape and impossible width are errors" {
     try equal("", writer.buffered());
 }
 
+test "shortened cells keep the start or the end of each line" {
+    var buffer: [1024]u8 = undefined;
+    var writer = std.Io.Writer.fixed(&buffer);
+    try console(&writer, .{ .width = 25 }).table(.{
+        .columns = &.{
+            .{ .header = "File", .overflow = .ellipsis_start },
+            .{ .header = "Note", .overflow = .ellipsis_end },
+        },
+        .rows = &.{&.{ .{ .text = "src/deep/Rules.java" }, .{ .text = "assertion-density" } }},
+    });
+    try equal(
+        \\╭───────────┬───────────╮
+        \\│ File      │ Note      │
+        \\├───────────┼───────────┤
+        \\│ …les.java │ assertio… │
+        \\╰───────────┴───────────╯
+        \\
+    , writer.buffered());
+}
+
+test "ASCII ellipsis is cut to fit very narrow columns" {
+    var buffer: [512]u8 = undefined;
+    var writer = std.Io.Writer.fixed(&buffer);
+    try console(&writer, .{ .width = 12, .unicode = false }).table(.{
+        .columns = &.{ .{ .header = "A", .overflow = .ellipsis_end }, .{ .header = "B", .overflow = .ellipsis_start } },
+        .rows = &.{&.{ .{ .text = "abcdef" }, .{ .text = "uvwxyz" } }},
+    });
+    try equal("+-----+----+\n| A   | B  |\n+-----+----+\n| ... | .. |\n+-----+----+\n", writer.buffered());
+}
+
+test "shortening keeps combining marks with their base" {
+    try equal("e\u{301}", rich.text.suffix("xe\u{301}", 1).bytes);
+    try equal("x", rich.text.prefix("xe\u{301}", 1).bytes);
+    try equal("", rich.text.suffix("你\u{301}", 1).bytes);
+    try equal("好", rich.text.suffix("你好", 3).bytes);
+}
+
+test "shortened tables fill the width exactly at every size" {
+    var buffer: [4096]u8 = undefined;
+    for (13..80) |width| for ([_]bool{ true, false }) |unicode| {
+        var writer = std.Io.Writer.fixed(&buffer);
+        try console(&writer, .{ .width = width, .unicode = unicode }).table(.{
+            .columns = &.{
+                .{ .header = "File", .overflow = .ellipsis_start },
+                .{ .header = "Errors", .alignment = .right },
+                .{ .header = "Most common", .overflow = .ellipsis_end },
+            },
+            .rows = &.{&.{ .{ .text = "tests/golden/languages/Rules_java.java" }, .{ .text = "9" }, .{ .text = "assertion-density" } }},
+            .footer = &.{&.{ .{ .text = "TOTAL" }, .{ .text = "465" }, .{ .text = "" } }},
+        });
+        var lines = std.mem.tokenizeScalar(u8, writer.buffered(), '\n');
+        while (lines.next()) |line| try std.testing.expectEqual(@min(width, 71), try rich.text.width(line));
+    };
+}
+
+test "footer rows sit below a rule in the footer style" {
+    var buffer: [1024]u8 = undefined;
+    var writer = std.Io.Writer.fixed(&buffer);
+    const table: rich.Table = .{
+        .columns = &.{ .{ .header = "File" }, .{ .header = "Errors", .alignment = .right } },
+        .rows = &.{&.{ .{ .text = "a.zig" }, .{ .text = "9" } }},
+        .footer = &.{&.{ .{ .text = "TOTAL" }, .{ .text = "465" } }},
+    };
+    try console(&writer, .{ .unicode = false }).table(table);
+    try equal(
+        \\+-------+--------+
+        \\| File  | Errors |
+        \\+-------+--------+
+        \\| a.zig |      9 |
+        \\+-------+--------+
+        \\| TOTAL |    465 |
+        \\+-------+--------+
+        \\
+    , writer.buffered());
+    writer = std.Io.Writer.fixed(&buffer);
+    try console(&writer, .{ .unicode = false, .color = true }).table(table);
+    try expect(std.mem.indexOf(u8, writer.buffered(), "\x1b[0;1mTOTAL\x1b[0m") != null);
+    try std.testing.expectError(error.ColumnCountMismatch, console(&writer, .{}).table(.{
+        .columns = &.{.{ .header = "x" }},
+        .rows = &.{},
+        .footer = &.{&.{}},
+    }));
+}
+
 test "progress clamps completion and handles zero totals" {
     var buffer: [512]u8 = undefined;
     var writer = std.Io.Writer.fixed(&buffer);

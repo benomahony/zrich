@@ -95,7 +95,7 @@ the writer. Console keeps no global state and does not retain text.
 | `styled(text, style)` | Styled literal text, no newline |
 | `markup(text)` | Nested style tags plus newline |
 | `panel(panel)` | Bordered, hard-wrapped text |
-| `table(table)` | Automatic column sizing, alignment, wrapping and multiline cells |
+| `table(table)` | Automatic column sizing, alignment, multiline cells, wrapping or ellipsis shortening (`Column.overflow`), and footer rows |
 | `progress(snapshot)` | One progress line |
 | `updateProgress(snapshot, finished)` | Replaces the current terminal line and flushes |
 | `flush()` | Flushes the borrowed writer |

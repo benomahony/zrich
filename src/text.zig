@@ -65,3 +65,34 @@ pub const Lines = struct {
         return .{ .bytes = self.text[start..], .width = used };
     }
 };
+
+/// Longest start of a single line that fits in `columns`, keeping following
+/// zero-width marks attached. Input must first pass validate().
+pub fn prefix(value: []const u8, columns: usize) Line {
+    var it = std.unicode.Utf8View.initUnchecked(value).iterator();
+    var used: usize = 0;
+    while (true) {
+        const start = it.i;
+        const cp = it.nextCodepoint() orelse break;
+        const w = codepointWidth(cp);
+        if (used + w > columns) return .{ .bytes = value[0..start], .width = used };
+        used += w;
+    }
+    return .{ .bytes = value, .width = used };
+}
+
+/// Longest end of a single line that fits in `columns`, never starting with an
+/// orphaned zero-width mark. Input must first pass validate().
+pub fn suffix(value: []const u8, columns: usize) Line {
+    var it = std.unicode.Utf8View.initUnchecked(value).iterator();
+    var used: usize = 0;
+    while (it.nextCodepoint()) |cp| used += codepointWidth(cp);
+    it.i = 0;
+    while (used > columns) used -= codepointWidth(it.nextCodepoint().?);
+    var start = it.i;
+    while (it.nextCodepoint()) |cp| {
+        if (codepointWidth(cp) != 0) break;
+        start = it.i;
+    }
+    return .{ .bytes = value[start..], .width = used };
+}

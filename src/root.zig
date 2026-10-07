@@ -11,6 +11,7 @@ pub const Alignment = @import("context.zig").Alignment;
 pub const Panel = @import("panel.zig").Panel;
 pub const Table = @import("table.zig").Table;
 pub const Column = @import("table.zig").Column;
+pub const Overflow = @import("table.zig").Overflow;
 pub const Cell = @import("table.zig").Cell;
 pub const Progress = @import("progress.zig").Progress;
 
