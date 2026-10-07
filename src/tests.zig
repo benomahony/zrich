@@ -150,6 +150,20 @@ test "shortened tables fill the width exactly at every size" {
     };
 }
 
+test "expanded columns fill spare terminal width" {
+    var buffer: [1024]u8 = undefined;
+    var writer = std.Io.Writer.fixed(&buffer);
+    try console(&writer, .{ .width = 40, .unicode = false }).table(.{
+        .columns = &.{
+            .{ .header = "File", .expand = true },
+            .{ .header = "Count", .alignment = .right },
+        },
+        .rows = &.{&.{ .{ .text = "a.zig" }, .{ .text = "3" } }},
+    });
+    var lines = std.mem.tokenizeScalar(u8, writer.buffered(), '\n');
+    while (lines.next()) |line| try std.testing.expectEqual(@as(usize, 40), try rich.text.width(line));
+}
+
 test "footer rows sit below a rule in the footer style" {
     var buffer: [1024]u8 = undefined;
     var writer = std.Io.Writer.fixed(&buffer);

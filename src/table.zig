@@ -19,6 +19,8 @@ pub const Column = struct {
     alignment: Alignment = .left,
     style: Style = .{},
     overflow: Overflow = .wrap,
+    /// Take an equal share of space left after every column reaches its natural width.
+    expand: bool = false,
 };
 pub const Cell = struct {
     text: []const u8,
@@ -84,6 +86,20 @@ pub const Table = struct {
                     size.* += 1;
                     spare -= 1;
                 }
+            }
+        } else if (total < ctx.options.width) {
+            var expandable: usize = 0;
+            for (self.columns) |column| expandable += @intFromBool(column.expand);
+            if (expandable > 0) {
+                var spare = ctx.options.width - total;
+                for (self.columns, 0..) |column, i| {
+                    if (!column.expand) continue;
+                    const growth = spare / expandable + @intFromBool(spare % expandable != 0);
+                    sizes[i] += growth;
+                    spare -= growth;
+                    expandable -= 1;
+                }
+                if (expandable != 0 or spare != 0) unreachable;
             }
         }
         const b = ctx.border();

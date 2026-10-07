@@ -141,6 +141,8 @@ Literal methods do not interpret tags, so use them for user-provided text.
 - Set `unicode = false` for ASCII borders and progress bars. User text is kept
   as supplied. Color detection does not negotiate palette depth: indexed and RGB
   colors require a compatible terminal. There is no color quantization yet.
+- Table columns can set `expand = true` to share spare terminal width after every
+  column reaches its natural width.
 - Unicode 16.0 scalar-width tables support CJK full-width characters and combining
   marks. Ambiguous-width characters count as one. Emoji ZWJ sequences, flags,
   variation selectors, and complex grapheme shaping are **not** measured as full
