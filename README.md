@@ -22,8 +22,8 @@ running it. The demo has no command-line options; it simply shows the library.
 
 Colour is automatic: supported terminals get styled output, while redirected
 output stays free of colour escapes. The demo respects non-empty `NO_COLOR` and
-`TERM=dumb`, and uses `COLUMNS` when available. Configure the library through
-`zrich.Options` in your own application.
+`TERM=dumb`, detects the terminal width, and lets `COLUMNS` override it. Configure
+the library through `zrich.Options` in your own application.
 
 ## Quick start
 
@@ -135,9 +135,8 @@ Literal methods do not interpret tags, so use them for user-provided text.
 ## Terminal behavior and limits
 
 - Defaults are 80 columns, Unicode borders, no color, and no live updates.
-  `Options.detect` checks TTY/ANSI support and environment variables. `COLUMNS`
-  supplies width when present; otherwise width remains 80. Set `options.width`
-  yourself when using a terminal-size API. Automatic resize tracking is pending.
+  `Options.detect` checks TTY/ANSI support and the terminal's current width;
+  `COLUMNS` overrides that width when present. Automatic resize tracking is pending.
 - Set `unicode = false` for ASCII borders and progress bars. User text is kept
   as supplied. Color detection does not negotiate palette depth: indexed and RGB
   colors require a compatible terminal. There is no color quantization yet.

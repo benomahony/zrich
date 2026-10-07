@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const Style = @import("style.zig").Style;
 const text = @import("text.zig");
 
@@ -8,7 +9,7 @@ pub const Options = struct {
     unicode: bool = true,
     interactive: bool = false,
 
-    /// Detect ANSI support and NO_COLOR. Width comes from COLUMNS, or defaults to 80.
+    /// Detect ANSI support, NO_COLOR and terminal width. COLUMNS overrides the terminal.
     /// An explicit caller override always takes precedence over detection.
     pub fn detect(io: std.Io, file: std.Io.File, env: *const std.process.Environ.Map) !Options {
         const tty = try file.isTty(io);
@@ -17,12 +18,31 @@ pub const Options = struct {
         const mode = try std.Io.Terminal.Mode.detect(io, file, no_color or dumb, false);
         var result: Options = .{ .color = mode == .escape_codes, .interactive = tty and !dumb, .unicode = !dumb };
         if (env.get("COLUMNS")) |value| {
-            const columns = std.fmt.parseInt(usize, value, 10) catch 80;
-            result.width = std.math.clamp(columns, 1, 4096);
+            if (std.fmt.parseInt(usize, value, 10)) |columns| {
+                result.width = std.math.clamp(columns, 1, 4096);
+                return result;
+            } else |_| {}
+        }
+        if (tty) {
+            if (terminalWidth(io, file)) |columns| result.width = std.math.clamp(columns, 1, 4096);
         }
         return result;
     }
 };
+
+fn terminalWidth(io: std.Io, file: std.Io.File) ?usize {
+    if (builtin.os.tag == .windows) {
+        var info = std.os.windows.CONSOLE.USER_IO.GET_SCREEN_BUFFER_INFO;
+        return switch (info.operate(io, file) catch return null) {
+            .SUCCESS => if (info.Data.dwWindowSize.X > 0) @intCast(info.Data.dwWindowSize.X) else null,
+            else => null,
+        };
+    }
+    var size: std.posix.winsize = .{ .row = 0, .col = 0, .xpixel = 0, .ypixel = 0 };
+    const result = io.operate(.{ .device_io_control = .{ .file = file, .code = std.posix.T.IOCGWINSZ, .arg = &size } }) catch return null;
+    if (result.device_io_control < 0 or size.col == 0) return null;
+    return size.col;
+}
 
 pub const Context = struct {
     writer: *std.Io.Writer,
