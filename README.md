@@ -3,9 +3,9 @@
 Rich-style CLI output, written in Zig. An early, usable foundation with no runtime
 dependencies: styles, nested markup, panels, wrapping tables, and progress bars.
 
-Targets **Zig 0.16.0**. The public module is `@import("zrich")`.
+Targets **Zig 0.17** (0.17.0-dev.2350 or newer). The public module is `@import("zrich")`.
 
-Verified on macOS with Zig 0.16.0 and 0.17.0-dev.947+36069a2a7: all 20 tests
+Verified on macOS with Zig 0.17.0-dev.2350+bc616127e: all 25 tests
 pass, including allocation-failure cleanup and writer-error propagation. The demo
 also cross-compiles in ReleaseSafe for x86_64 Linux and Windows; those binaries
 have not been run on their target operating systems. Plain, redirected, NO_COLOR,

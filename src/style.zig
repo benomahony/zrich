@@ -41,7 +41,7 @@ pub const Color = union(enum) {
         const base: u8 = if (background) 40 else 30;
         switch (self) {
             .named => |name| {
-                const n: u8 = @intFromEnum(name);
+                const n: u8 = @backingInt(name);
                 try writer.print(";{d}", .{base + n % 8 + @as(u8, if (n >= 8) 60 else 0)});
             },
             .indexed => |n| try writer.print(";{d};5;{d}", .{ base + 8, n }),
