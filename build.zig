@@ -19,13 +19,8 @@ pub fn build(b: *std.Build) void {
     });
     b.installArtifact(demo);
     const run = b.addRunArtifact(demo);
-    // Zig 0.17 forwards build arguments through the Run step; 0.16 stores
-    // them on Build. Feature detection keeps both toolchains supported.
-    if (@hasDecl(std.Build.Step.Run, "addPassthruArgs")) {
-        run.addPassthruArgs();
-    } else if (b.args) |args| {
-        run.addArgs(args);
-    }
+    // Keep the standalone binary in sync whenever the showcase runs.
+    run.step.dependOn(b.getInstallStep());
     b.step("demo", "Run the Rich-style output demo").dependOn(&run.step);
     const tests = b.addTest(.{ .root_module = rich });
     b.step("test", "Run library tests").dependOn(&b.addRunArtifact(tests).step);

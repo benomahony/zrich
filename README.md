@@ -8,19 +8,22 @@ Targets **Zig 0.17** (0.17.0-dev.2350 or newer). The public module is `@import("
 Verified on macOS with Zig 0.17.0-dev.2350+bc616127e: all 25 tests
 pass, including allocation-failure cleanup and writer-error propagation. The demo
 also cross-compiles in ReleaseSafe for x86_64 Linux and Windows; those binaries
-have not been run on their target operating systems. Plain, redirected, NO_COLOR,
-and forced-color demo output were checked locally.
+have not been run on their target operating systems. Automatic terminal colour,
+redirected output, and NO_COLOR behavior were checked locally.
 
 ```sh
 zig build test
 zig build demo
-zig build demo -- --color
-zig build demo -- --plain --ascii --width=60
 ```
 
-`zig build` installs `zig-out/bin/zrich-demo`. The demo writes to stdout, detects
-terminal capabilities, and respects non-empty `NO_COLOR` and `TERM=dumb`.
-`--color` explicitly overrides detection; `--plain` disables color and live updates.
+`zig build demo` builds and runs the showcase, and refreshes the standalone
+binary at `zig-out/bin/zrich-demo`. `zig build` installs that binary without
+running it. The demo has no command-line options; it simply shows the library.
+
+Colour is automatic: supported terminals get styled output, while redirected
+output stays free of colour escapes. The demo respects non-empty `NO_COLOR` and
+`TERM=dumb`, and uses `COLUMNS` when available. Configure the library through
+`zrich.Options` in your own application.
 
 ## Quick start
 

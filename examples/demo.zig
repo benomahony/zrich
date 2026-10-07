@@ -4,16 +4,7 @@ const zrich = @import("zrich");
 pub fn main(init: std.process.Init) !void {
     var buffer: [4096]u8 = undefined;
     var stdout = std.Io.File.stdout().writer(init.io, &buffer);
-    var options = try zrich.Options.detect(init.io, .stdout(), init.environ_map);
-    const args = try init.minimal.args.toSlice(init.arena.allocator());
-    for (args[1..]) |arg| {
-        if (std.mem.eql(u8, arg, "--color")) options.color = true else if (std.mem.eql(u8, arg, "--plain")) {
-            options.color = false;
-            options.interactive = false;
-        } else if (std.mem.eql(u8, arg, "--ascii")) options.unicode = false else if (std.mem.startsWith(u8, arg, "--width=")) {
-            options.width = try std.fmt.parseInt(usize, arg[8..], 10);
-        } else return error.UnknownArgument;
-    }
+    const options = try zrich.Options.detect(init.io, .stdout(), init.environ_map);
     const console: zrich.Console = .{
         .writer = &stdout.interface,
         .allocator = init.gpa,
